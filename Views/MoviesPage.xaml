@@ -1,0 +1,146 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Archive.Views.MoviesPage"
+             BackgroundColor="#000000">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="10">
+            <!-- Tytuł aplikacji -->
+            <Label Text="Movies Archive"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="White" />
+
+            <!-- Sekcja "Add New Movie" z przyciskiem strzałki -->
+            <Grid>
+                <!-- Wyśrodkowany napis -->
+                <Label Text="Add New Movie"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       TextColor="#67f5f3"
+                       Grid.Column="0"
+                       Grid.ColumnSpan="2" />
+
+                <!-- Przycisk strzałki -->
+                <Button Text="➔"
+                        FontSize="20"
+                        BackgroundColor="Transparent"
+                        TextColor="#67f5f3"
+                        HorizontalOptions="End"
+                        VerticalOptions="Center"
+                        Grid.Column="2"
+                        Clicked="GoToTVSeriesButton_Clicked" />
+            </Grid>
+
+            <!-- Formularz dodawania filmu -->
+            <StackLayout Spacing="5">
+                <Entry Placeholder="Movie Title"
+                       TextColor="White"
+                       BackgroundColor="#333333"
+                       Margin="5"
+                       HeightRequest="35"
+                       FontSize="12" />
+
+                <Entry Placeholder="Movie Category"
+                       TextColor="White"
+                       BackgroundColor="#333333"
+                       Margin="5"
+                       HeightRequest="35"
+                       FontSize="12" />
+
+                <Entry Placeholder="Rating (1-10)"
+                       Keyboard="Numeric"
+                       TextColor="White"
+                       BackgroundColor="#333333"
+                       Margin="5"
+                       HeightRequest="35"
+                       FontSize="12" />
+
+                <DatePicker TextColor="White"
+                            BackgroundColor="#333333"
+                            Margin="5"
+                            HeightRequest="35"
+                            FontSize="12" />
+
+                <Button Text="Add Movie"
+                        BackgroundColor="#408584"
+                        TextColor="White"
+                        HeightRequest="35"
+                        FontSize="12"
+                        CornerRadius="5"
+                        Margin="5" />
+            </StackLayout>
+
+            <!-- Nagłówek sekcji filmów -->
+            <Label Text="Movies"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="White"
+                   Margin="10,20,10,10" />
+
+            <!-- Lista filmów -->
+            <CollectionView ItemsSource="{Binding Movies}" HeightRequest="400">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame BorderColor="#67f5f3"
+                               Padding="10"
+                               Margin="5"
+                               BackgroundColor="#1c1c1c"
+                               HasShadow="True"
+                               CornerRadius="10">
+                            <StackLayout>
+                                <!-- Informacje o filmie -->
+                                <Label Text="{Binding Title}"
+                                       FontSize="16"
+                                       TextColor="White" />
+
+                                <HorizontalStackLayout Spacing="10">
+                                    <Label Text="{Binding Category}"
+                                           FontSize="14"
+                                           TextColor="White" />
+                                    <Label Text="{Binding Rating, StringFormat='{0}/10'}"
+                                           FontSize="14"
+                                           TextColor="White" />
+                                    <Label Text="{Binding Date, StringFormat='{0:MM/dd/yyyy}'}"
+                                           FontSize="14"
+                                           TextColor="White" />
+                                </HorizontalStackLayout>
+
+                                <!-- Przyciski edycji i usuwania -->
+                                <HorizontalStackLayout Spacing="5"
+                                                       HorizontalOptions="Center"
+                                                       Margin="5">
+                                    <Button Text="Edit"
+                                            BackgroundColor="#408584"
+                                            TextColor="White"
+                                            FontSize="9"
+                                            HeightRequest="30"
+                                            WidthRequest="60"
+                                            CornerRadius="5"
+                                            Padding="2" />
+                                    
+                                    <Button Text="Delete"
+                                            BackgroundColor="#FF6347"
+                                            TextColor="White"
+                                            FontSize="9"
+                                            HeightRequest="30"
+                                            WidthRequest="60"
+                                            CornerRadius="5"
+                                            Padding="2"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteMovieCommand}"
+                                            CommandParameter="{Binding}" />
+
+                                </HorizontalStackLayout>
+                            </StackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </StackLayout>
+    </ScrollView>
+</ContentPage>
+
