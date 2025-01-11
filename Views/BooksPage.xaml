@@ -1,14 +1,15 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"  
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Archive.Views.MoviesPage"
+             x:Class="Archive.Views.BooksPage"
              NavigationPage.HasNavigationBar="False">
+    
     <ContentPage.Background>
         <LinearGradientBrush>
             <GradientStop Color="Black" Offset="0.0" />
             <GradientStop Color="#494949" Offset="1.0" />
         </LinearGradientBrush>
     </ContentPage.Background>
-    
+
 
     <ScrollView>
         <StackLayout Padding="20" Spacing="10">
@@ -20,10 +21,20 @@
                    HorizontalOptions="Center"
                    TextColor="#67f5f3" />
 
-            <!-- Sekcja "Add New Movie" z przyciskiem strzałki -->
+            <!-- Sekcja "Add New Book" z przyciskiem strzałki -->
             <Grid>
                 <!-- Wyśrodkowany napis -->
-                <Label Text="Add New Movie"
+                <Button Text="➔"
+                        RotationY="180"
+                        FontSize="20"
+                        BackgroundColor="Transparent"
+                        TextColor="#67f5f3"
+                        HorizontalOptions="Start"
+                        VerticalOptions="Center"
+                        Grid.Column="0"
+                        Clicked="GoToTVSeriesButton_Clicked" />
+                
+                <Label Text="Add New Book"
                        FontSize="20"
                        FontAttributes="Bold"
                        HorizontalOptions="Center"
@@ -33,30 +44,21 @@
                        Grid.ColumnSpan="2" />
 
                 <!-- Przycisk strzałki -->
-                <Button Text="➔"
-                        FontSize="20"
-                        BackgroundColor="Transparent"
-                        TextColor="#67f5f3"
-                        HorizontalOptions="End"
-                        VerticalOptions="Center"
-                        Grid.Column="2"
-                        Clicked="GoToTVSeriesButton_Clicked" />
+             
             </Grid>
 
-            <!-- Formularz dodawania filmu -->
+            <!-- Formularz dodawania książki -->
             <StackLayout Spacing="5">
-                <Entry Placeholder="Movie Title"
-                       
-                       Text="{Binding NewMovieTitle, Mode=TwoWay}" 
+                <Entry Placeholder="Book Title"
+                       Text="{Binding NewBookTitle, Mode=TwoWay}" 
                        TextColor="White"
                        BackgroundColor="#333333"
                        Margin="5"
                        HeightRequest="35"
                        FontSize="12" />
 
-                <Entry Placeholder="Movie Category"
-                       
-                       Text="{Binding NewMovieCategory, Mode=TwoWay}"
+                <Entry Placeholder="Book Category"
+                       Text="{Binding NewBookCategory, Mode=TwoWay}"
                        TextColor="White"
                        BackgroundColor="#333333"
                        Margin="5"
@@ -64,7 +66,7 @@
                        FontSize="12" />
 
                 <Entry Placeholder="Rating (1-10)"
-                       Text="{Binding NewMovieRating, Mode=TwoWay}"
+                       Text="{Binding NewBookRating, Mode=TwoWay}"
                        Keyboard="Numeric"
                        TextColor="White"
                        BackgroundColor="#333333"
@@ -73,14 +75,14 @@
                        FontSize="12" />
 
                 <DatePicker TextColor="White"
-                            Date="{Binding NewMovieDate, Mode=TwoWay}"
+                            Date="{Binding NewBookDate, Mode=TwoWay}"
                             BackgroundColor="#333333"
                             Margin="5"
                             HeightRequest="35"
                             FontSize="12" />
 
-                <Button Text="Add Movie"
-                        Command="{Binding AddMovieCommand}"
+                <Button Text="Add Book"
+                        Command="{Binding AddBookCommand}"
                         BackgroundColor="#408584"
                         TextColor="White"
                         HeightRequest="35"
@@ -89,16 +91,16 @@
                         Margin="5" />
             </StackLayout>
 
-            <!-- Nagłówek sekcji filmów -->
-            <Label Text="Movies"
+            <!-- Nagłówek sekcji książek -->
+            <Label Text="Books"
                    FontSize="20"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
                    TextColor="White"
                    Margin="10,20,10,10" />
 
-            <!-- Lista filmów -->
-            <CollectionView ItemsSource="{Binding Movies}" HeightRequest="400">
+            <!-- Lista książek -->
+            <CollectionView ItemsSource="{Binding Books}" HeightRequest="400">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Frame BorderColor="#67f5f3"
@@ -108,7 +110,7 @@
                                HasShadow="True"
                                CornerRadius="10">
                             <StackLayout>
-                                <!-- Informacje o filmie -->
+                                <!-- Informacje o książce -->
                                 <Label Text="{Binding Title}"
                                        FontSize="18"
                                        TextColor="White" />
@@ -137,7 +139,7 @@
                                             WidthRequest="60"
                                             CornerRadius="5"
                                             Padding="2"/>
-                                    
+
                                     <Button Text="Delete"
                                             BackgroundColor="#a6402e"
                                             TextColor="White"
@@ -146,9 +148,8 @@
                                             WidthRequest="60"
                                             CornerRadius="5"
                                             Padding="2"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteMovieCommand}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCommand}"
                                             CommandParameter="{Binding}" />
-
                                 </HorizontalStackLayout>
                             </StackLayout>
                         </Frame>
@@ -158,4 +159,3 @@
         </StackLayout>
     </ScrollView>
 </ContentPage>
-

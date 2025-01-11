@@ -1,13 +1,167 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"  
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Archive.Views.TVSeriesPage"
-             BackgroundColor="#000000">
+             NavigationPage.HasNavigationBar="False">
+    <ContentPage.Background>
+        <LinearGradientBrush>
+            <GradientStop Color="Black" Offset="0.0" />
+            <GradientStop Color="#494949" Offset="1.0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
 
-    <StackLayout Padding="20" Spacing="10">
-        <Label Text="TV Series"
-               FontSize="26"
-               FontAttributes="Bold"
-               HorizontalOptions="Center"
-               TextColor="White" />
-    </StackLayout>
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="10">
+            <!-- Tytuł aplikacji -->
+            <Label Text="The Verdant Archive"
+                   FontFamily="DeliusSwashCaps"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="#67f5f3" />
+
+            <!-- Sekcja "Add New TV Series" z przyciskiem strzałki -->
+            <Grid>
+                <Button Text="➔"
+                        RotationY="180"
+                        FontSize="20"
+                        BackgroundColor="Transparent"
+                        TextColor="#67f5f3"
+                        HorizontalOptions="Start"
+                        VerticalOptions="Center"
+                        Grid.Column="0"
+                        Clicked="GoToMoviesButton_Clicked" />
+                <!-- Wyśrodkowany napis -->
+                <Label Text="Add New TV Series"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       TextColor="white"
+                       Grid.Column="0"
+                       Grid.ColumnSpan="2" />
+
+                <!-- Przycisk strzałki -->
+                <Button Text="➔"
+                        FontSize="20"
+                        BackgroundColor="Transparent"
+                        TextColor="#67f5f3"
+                        HorizontalOptions="End"
+                        VerticalOptions="Center"
+                        Grid.Column="2"
+                        Clicked="GoToBooksButton_Clicked" />
+            </Grid>
+
+            <!-- Formularz dodawania serialu -->
+            <StackLayout Spacing="5">
+                <Entry Placeholder="TV Series Title"
+                       Text="{Binding NewSeriesTitle, Mode=TwoWay}" 
+                       TextColor="White"
+                       BackgroundColor="#333333"
+                       Margin="5"
+                       HeightRequest="35"
+                       FontSize="12" />
+
+                <Entry Placeholder="TV Series Category"
+                       Text="{Binding NewSeriesCategory, Mode=TwoWay}"
+                       TextColor="White"
+                       BackgroundColor="#333333"
+                       Margin="5"
+                       HeightRequest="35"
+                       FontSize="12" />
+
+                <Entry Placeholder="Rating (1-10)"
+                       Text="{Binding NewSeriesRating, Mode=TwoWay}"
+                       Keyboard="Numeric"
+                       TextColor="White"
+                       BackgroundColor="#333333"
+                       Margin="5"
+                       HeightRequest="35"
+                       FontSize="12" />
+
+                <DatePicker TextColor="White"
+                            Date="{Binding NewSeriesDate, Mode=TwoWay}"
+                            BackgroundColor="#333333"
+                            Margin="5"
+                            HeightRequest="35"
+                            FontSize="12" />
+
+                <Button Text="Add TV Series"
+                        Command="{Binding AddSeriesCommand}"
+                        BackgroundColor="#408584"
+                        TextColor="White"
+                        HeightRequest="35"
+                        FontSize="12"
+                        CornerRadius="5"
+                        Margin="5" />
+            </StackLayout>
+
+            <!-- Nagłówek sekcji seriali -->
+            <Label Text="TV Series"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="White"
+                   Margin="10,20,10,10" />
+
+            <!-- Lista seriali -->
+            <CollectionView ItemsSource="{Binding Series}" HeightRequest="400">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame BorderColor="#67f5f3"
+                               Padding="10"
+                               Margin="5"
+                               BackgroundColor="#1c1c1c"
+                               HasShadow="True"
+                               CornerRadius="10">
+                            <StackLayout>
+                                <!-- Informacje o serialu -->
+                                <Label Text="{Binding Title}"
+                                       FontSize="18"
+                                       TextColor="White" />
+
+                                <HorizontalStackLayout Spacing="10">
+                                    <Label Text="{Binding Category}"
+                                           FontSize="14"
+                                           TextColor="White" />
+                                    <Label Text="{Binding Rating, StringFormat='{0}/10'}"
+                                           FontSize="14"
+                                           TextColor="White" />
+                                    <Label Text="{Binding Date, StringFormat='{0:MM/dd/yyyy}'}"
+                                           FontSize="14"
+                                           TextColor="White" />
+                                </HorizontalStackLayout>
+
+                                <!-- Przyciski edycji i usuwania -->
+                                <HorizontalStackLayout Spacing="5"
+                                                       HorizontalOptions="Center"
+                                                       Margin="5">
+                                    <Button Text="Edit"
+                                            BackgroundColor="#408584"
+                                            TextColor="White"
+                                            FontSize="9"
+                                            HeightRequest="30"
+                                            WidthRequest="60"
+                                            CornerRadius="5"
+                                            Padding="2"/>
+
+                                    <Button Text="Delete"
+                                            BackgroundColor="#a6402e"
+                                            TextColor="White"
+                                            FontSize="9"
+                                            HeightRequest="30"
+                                            WidthRequest="60"
+                                            CornerRadius="5"
+                                            Padding="2"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteSeriesCommand}"
+                                            CommandParameter="{Binding}" />
+
+                                </HorizontalStackLayout>
+                            </StackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </StackLayout>
+    </ScrollView>
 </ContentPage>
