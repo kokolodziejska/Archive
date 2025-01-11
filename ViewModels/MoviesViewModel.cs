@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Archive.Models;
+using System.Windows.Input;
+
 
 namespace Archive.ViewModels
 {
@@ -18,10 +20,27 @@ namespace Archive.ViewModels
 
         private readonly HttpClient _httpClient;
 
+        [ObservableProperty]
+        private string newMovieTitle;
+
+        [ObservableProperty]
+        private string newMovieCategory;
+
+        [ObservableProperty]
+        private string newMovieRating;
+
+        public int ParsedRating => int.TryParse(NewMovieRating, out var rating) ? rating : 0;
+
+        [ObservableProperty]
+        private DateTime newMovieDate = DateTime.Now;
+
+
         // Komenda do ładowania filmów
         public IAsyncRelayCommand LoadMoviesCommand { get; }
         // Komenda do usuwania filmu
-        public IRelayCommand<Movie> DeleteMovieCommand { get; }
+        public ICommand DeleteCommand { get; }
+        // Komenda do doania filmu
+        public IAsyncRelayCommand AddMovieCommand { get; }
 
         public MoviesViewModel()
         {
@@ -32,7 +51,8 @@ namespace Archive.ViewModels
 
             _httpClient = new HttpClient(handler);
             LoadMoviesCommand = new AsyncRelayCommand(LoadMoviesAsync);
-            DeleteMovieCommand = new RelayCommand<Movie>(DeleteMovieAsync);
+            DeleteCommand = new Command<Movie>(DeleteMovie);
+            AddMovieCommand = new AsyncRelayCommand(AddMovieAsync);
             LoadMoviesAsync();
         }
 
@@ -70,26 +90,50 @@ namespace Archive.ViewModels
             }
         }
 
-        private async void DeleteMovieAsync(Movie movie)
+        public void DeleteMovie(Movie movie)
         {
-            if (movie == null) return;
+            if (Movies.Contains(movie))
+            {
+                Movies.Remove(movie);
+                // Wywołaj API, aby usunąć film z bazy danych (jeśli korzystasz z API)
+                _httpClient.DeleteAsync($"{ApiBaseUrl}/{movie.Id}");
+            }
+        }
 
+        private async Task AddMovieAsync()
+        {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{ApiBaseUrl}/{movie.Id}");
+                var newMovie = new Movie
+                {
+                    Title = NewMovieTitle,
+                    Category = NewMovieCategory,
+                    Rating = ParsedRating,
+                    Date = NewMovieDate,
+                };
+
+                var json = JsonContent.Create(newMovie);
+                var response = await _httpClient.PostAsync(ApiBaseUrl, json);
+
                 if (response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"Usunięto film: {movie.Title}");
-                    Movies.Remove(movie);
+                    // Clear the input fields
+                    NewMovieTitle = string.Empty;
+                    NewMovieCategory = string.Empty;
+                    NewMovieRating = string.Empty;
+                    NewMovieDate = DateTime.Now;
+
+                    // Reload the movie list from the backend
+                    await LoadMoviesAsync();
                 }
                 else
                 {
-                    Console.WriteLine($"Błąd podczas usuwania filmu: {response.StatusCode}");
+                    Console.WriteLine($"Failed to add movie: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd podczas usuwania filmu: {ex.Message}");
+                Console.WriteLine($"Error while adding a movie: {ex.Message}");
             }
         }
     }

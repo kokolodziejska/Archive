@@ -12,8 +12,8 @@ namespace Archive
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
                 {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("Lato-Regular.ttf", "Lato");
+                    fonts.AddFont("DeliusSwashCaps-Regular.ttf", "DeliusSwashCaps");
                 });
 
             // Rejestracja ViewModel

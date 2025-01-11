@@ -1,16 +1,23 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Archive.Views.MoviesPage"
-             BackgroundColor="#000000">
+             x:Class="Archive.Views.MoviesPage">
+    <ContentPage.Background>
+        <LinearGradientBrush>
+            <GradientStop Color="Black" Offset="0.0" />
+            <GradientStop Color="#494949" Offset="1.0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+    
 
     <ScrollView>
         <StackLayout Padding="20" Spacing="10">
             <!-- Tytuł aplikacji -->
-            <Label Text="Movies Archive"
+            <Label Text="The Verdant Archive"
+                   FontFamily="DeliusSwashCaps"
                    FontSize="26"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
-                   TextColor="White" />
+                   TextColor="#67f5f3" />
 
             <!-- Sekcja "Add New Movie" z przyciskiem strzałki -->
             <Grid>
@@ -20,7 +27,7 @@
                        FontAttributes="Bold"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
-                       TextColor="#67f5f3"
+                       TextColor="white"
                        Grid.Column="0"
                        Grid.ColumnSpan="2" />
 
@@ -38,6 +45,8 @@
             <!-- Formularz dodawania filmu -->
             <StackLayout Spacing="5">
                 <Entry Placeholder="Movie Title"
+                       
+                       Text="{Binding NewMovieTitle, Mode=TwoWay}" 
                        TextColor="White"
                        BackgroundColor="#333333"
                        Margin="5"
@@ -45,6 +54,8 @@
                        FontSize="12" />
 
                 <Entry Placeholder="Movie Category"
+                       
+                       Text="{Binding NewMovieCategory, Mode=TwoWay}"
                        TextColor="White"
                        BackgroundColor="#333333"
                        Margin="5"
@@ -52,6 +63,7 @@
                        FontSize="12" />
 
                 <Entry Placeholder="Rating (1-10)"
+                       Text="{Binding NewMovieRating, Mode=TwoWay}"
                        Keyboard="Numeric"
                        TextColor="White"
                        BackgroundColor="#333333"
@@ -60,12 +72,14 @@
                        FontSize="12" />
 
                 <DatePicker TextColor="White"
+                            Date="{Binding NewMovieDate, Mode=TwoWay}"
                             BackgroundColor="#333333"
                             Margin="5"
                             HeightRequest="35"
                             FontSize="12" />
 
                 <Button Text="Add Movie"
+                        Command="{Binding AddMovieCommand}"
                         BackgroundColor="#408584"
                         TextColor="White"
                         HeightRequest="35"
@@ -95,7 +109,7 @@
                             <StackLayout>
                                 <!-- Informacje o filmie -->
                                 <Label Text="{Binding Title}"
-                                       FontSize="16"
+                                       FontSize="18"
                                        TextColor="White" />
 
                                 <HorizontalStackLayout Spacing="10">
@@ -121,10 +135,10 @@
                                             HeightRequest="30"
                                             WidthRequest="60"
                                             CornerRadius="5"
-                                            Padding="2" />
+                                            Padding="2"/>
                                     
                                     <Button Text="Delete"
-                                            BackgroundColor="#FF6347"
+                                            BackgroundColor="#a6402e"
                                             TextColor="White"
                                             FontSize="9"
                                             HeightRequest="30"

@@ -6,7 +6,7 @@
         {
             InitializeComponent();
 
-            MainPage = new Archive.Views.MoviesPage();
+            MainPage = new NavigationPage(new Archive.Views.MoviesPage());
 
         }
     }
