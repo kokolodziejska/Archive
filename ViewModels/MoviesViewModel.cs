@@ -8,39 +8,30 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Archive.Models;
-using System.Windows.Input;
-
+using System.Diagnostics;
 
 namespace Archive.ViewModels
 {
     public partial class MoviesViewModel : ObservableObject
     {
-        private const string ApiBaseUrl = "https://10.0.2.2:7219/api/movies";
+        private const string ApiBaseUrl = "http://localhost:5109/api/movies";
         public ObservableCollection<Movie> Movies { get; set; } = new();
 
         private readonly HttpClient _httpClient;
 
-        [ObservableProperty]
-        private string newMovieTitle;
-
-        [ObservableProperty]
-        private string newMovieCategory;
-
-        [ObservableProperty]
-        private string newMovieRating;
-
-        public int ParsedRating => int.TryParse(NewMovieRating, out var rating) ? rating : 0;
-
-        [ObservableProperty]
-        private DateTime newMovieDate = DateTime.Now;
-
-
-        // Komenda do ładowania filmów
         public IAsyncRelayCommand LoadMoviesCommand { get; }
-        // Komenda do usuwania filmu
-        public ICommand DeleteCommand { get; }
-        // Komenda do doania filmu
-        public IAsyncRelayCommand AddMovieCommand { get; }
+        public IRelayCommand<Movie> DeleteMovieCommand { get; }
+        public IRelayCommand<Movie> EditMovieCommand { get; }
+        public IRelayCommand SaveMovieCommand { get; }
+
+        [ObservableProperty]
+        private Movie selectedMovie;
+
+        [ObservableProperty]
+        private bool isEditing;
+
+        [ObservableProperty]
+        private string saveButtonText;
 
         public MoviesViewModel()
         {
@@ -51,23 +42,27 @@ namespace Archive.ViewModels
 
             _httpClient = new HttpClient(handler);
             LoadMoviesCommand = new AsyncRelayCommand(LoadMoviesAsync);
-            DeleteCommand = new Command<Movie>(DeleteMovie);
-            AddMovieCommand = new AsyncRelayCommand(AddMovieAsync);
+            DeleteMovieCommand = new RelayCommand<Movie>(DeleteMovieAsync);
+            EditMovieCommand = new RelayCommand<Movie>(EditMovie);
+            SaveMovieCommand = new RelayCommand(SaveMovie);
             LoadMoviesAsync();
+            IsEditing = false;
+            selectedMovie = new Movie();
+            saveButtonText = "Add Movie";
         }
 
         private async Task LoadMoviesAsync()
         {
             try
             {
-                Console.WriteLine("Rozpoczynam pobieranie filmów...");
+                Debug.WriteLine("Rozpoczynam pobieranie filmów...");
                 var response = await _httpClient.GetAsync(ApiBaseUrl);
                 if (response.IsSuccessStatusCode)
                 {
                     var movies = await response.Content.ReadFromJsonAsync<List<Movie>>();
                     if (movies != null && movies.Any())
                     {
-                        Console.WriteLine($"Pobrano {movies.Count} filmów.");
+                        Debug.WriteLine($"Pobrano {movies.Count} filmów.");
                         Movies.Clear();
                         foreach (var movie in movies)
                         {
@@ -76,64 +71,111 @@ namespace Archive.ViewModels
                     }
                     else
                     {
-                        Console.WriteLine("Brak filmów do wyświetlenia.");
+                        Debug.WriteLine("Brak filmów do wyświetlenia.");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"Błąd połączenia z API: {response.StatusCode}");
+                    Debug.WriteLine($"Błąd połączenia z API: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd podczas pobierania filmów: {ex.Message}");
+                Debug.WriteLine($"Błąd podczas pobierania filmów: {ex.Message}");
             }
         }
 
-        public void DeleteMovie(Movie movie)
+        private async void DeleteMovieAsync(Movie movie)
         {
-            if (Movies.Contains(movie))
-            {
-                Movies.Remove(movie);
-                // Wywołaj API, aby usunąć film z bazy danych (jeśli korzystasz z API)
-                _httpClient.DeleteAsync($"{ApiBaseUrl}/{movie.Id}");
-            }
-        }
+            if (movie == null) return;
 
-        private async Task AddMovieAsync()
-        {
             try
             {
-                var newMovie = new Movie
-                {
-                    Title = NewMovieTitle,
-                    Category = NewMovieCategory,
-                    Rating = ParsedRating,
-                    Date = NewMovieDate,
-                };
-
-                var json = JsonContent.Create(newMovie);
-                var response = await _httpClient.PostAsync(ApiBaseUrl, json);
-
+                var response = await _httpClient.DeleteAsync($"{ApiBaseUrl}/{movie.Id}");
                 if (response.IsSuccessStatusCode)
                 {
-                    // Clear the input fields
-                    NewMovieTitle = string.Empty;
-                    NewMovieCategory = string.Empty;
-                    NewMovieRating = string.Empty;
-                    NewMovieDate = DateTime.Now;
-
-                    // Reload the movie list from the backend
-                    await LoadMoviesAsync();
+                    Debug.WriteLine($"Usunięto film: {movie.Title}");
+                    Movies.Remove(movie);
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to add movie: {response.StatusCode}");
+                    Debug.WriteLine($"Błąd podczas usuwania filmu: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error while adding a movie: {ex.Message}");
+                Debug.WriteLine($"Błąd podczas usuwania filmu: {ex.Message}");
+            }
+        }
+
+        private void EditMovie(Movie movie)
+        {
+            if (movie == null) return;
+
+            SelectedMovie = movie;
+            IsEditing = true;
+            SaveButtonText = "Save Changes";
+        }
+
+        private async void SaveMovie()
+        {
+            if (SelectedMovie == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(SelectedMovie.Title) || string.IsNullOrEmpty(SelectedMovie.Category) || SelectedMovie.Rating < 1 || SelectedMovie.Rating > 10)
+            {
+                Debug.WriteLine("Niepoprawne dane filmu.");
+                return;
+            }
+
+            try
+            {
+                if (IsEditing)
+                {
+                    SaveEdit();
+                }
+                else
+                {
+                    AddMovie();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Błąd podczas zapisywania filmu: {ex.Message}");
+            }
+        }
+
+        private async void AddMovie()
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"{ApiBaseUrl}", SelectedMovie);
+            if (response.IsSuccessStatusCode)
+            {
+                var movie = await response.Content.ReadFromJsonAsync<Movie>();
+                Movies.Add(movie);
+                SelectedMovie = new Movie();
+                IsEditing = false;
+                SaveButtonText = "Add Movie";
+                Debug.WriteLine($"Dodano film: {movie.Title}");
+            }
+        }
+
+        private async void SaveEdit()
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"{ApiBaseUrl}/{SelectedMovie.Id}", SelectedMovie);
+            if (response.IsSuccessStatusCode)
+            {
+                var index = Movies.IndexOf(Movies.First(m => m.Id == SelectedMovie.Id));
+                Movies[index] = SelectedMovie;
+                SelectedMovie = new Movie();
+                IsEditing = false;
+                SaveButtonText = "Add Movie";
+                Debug.WriteLine($"Zapisano film: {SelectedMovie.Title}");
+            }
+            else
+            {
+                Debug.WriteLine($"Błąd podczas zapisywania filmu: {response.StatusCode}");
             }
         }
     }

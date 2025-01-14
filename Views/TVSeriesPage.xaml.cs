@@ -1,24 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using Archive.ViewModels;
-using Microsoft.Maui.Controls;
+﻿using Archive.ViewModels;
 
 namespace Archive.Views
 {
     public partial class TVSeriesPage : ContentPage
     {
-        public TVSeriesPage()
+        public TVSeriesPage(TVSeriesViewModel viewModel)
         {
             InitializeComponent();
-            BindingContext = new TVSeriesViewModel();
+            BindingContext = viewModel;
         }
-        private async void GoToBooksButton_Clicked(object sender, EventArgs e)
-        {
-            await Navigation.PushAsync(new BooksPage());
-        }
+
         private async void GoToMoviesButton_Clicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new MoviesPage());
+            var viewModel = App.serviceProvider.GetService<MoviesViewModel>();
+            await Navigation.PushAsync(new NavigationPage(new MoviesPage(viewModel)));
+        }
+
+        private async void GoToBooksButton_Clicked(object sender, EventArgs e)
+        {
+            var viewModel = App.serviceProvider.GetService<BooksViewModel>();
+            await Navigation.PushAsync(new NavigationPage(new BooksPage(viewModel)));
         }
     }
 }

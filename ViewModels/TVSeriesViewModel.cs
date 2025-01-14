@@ -1,40 +1,37 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Net.Http;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.Http.Json;
+using System.Text;
 using System.Threading.Tasks;
 using Archive.Models;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 
 namespace Archive.ViewModels
 {
     public partial class TVSeriesViewModel : ObservableObject
     {
-        private const string ApiBaseUrl = "https://10.0.2.2:7219/api/tvseries";
-        public ObservableCollection<TVSeries> Series { get; set; } = new();
+        private const string ApiBaseUrl = "http://localhost:5109/api/tvseries";
+        public ObservableCollection<TVSeries> TVSeries { get; set; } = new();
 
         private readonly HttpClient _httpClient;
 
-        [ObservableProperty]
-        private string newSeriesTitle;
+        public IAsyncRelayCommand LoadTVSeriesCommand { get; }
+        public IRelayCommand<TVSeries> DeleteTVSeriesCommand { get; }
+        public IRelayCommand<TVSeries> EditTVSeriesCommand { get; }
+        public IRelayCommand SaveTVSeriesCommand { get; }
 
         [ObservableProperty]
-        private string newSeriesCategory;
+        private TVSeries selectedTVSeries;
 
         [ObservableProperty]
-        private string newSeriesRating;
-
-        public int ParsedRating => int.TryParse(NewSeriesRating, out var rating) ? rating : 0;
+        private bool isEditing;
 
         [ObservableProperty]
-        private DateTime newSeriesDate = DateTime.Now;
-
-        public IAsyncRelayCommand LoadSeriesCommand { get; }
-        public ICommand DeleteCommand { get; }
-        public IAsyncRelayCommand AddSeriesCommand { get; }
+        private string saveButtonText;
 
         public TVSeriesViewModel()
         {
@@ -44,73 +41,141 @@ namespace Archive.ViewModels
             };
 
             _httpClient = new HttpClient(handler);
-            LoadSeriesCommand = new AsyncRelayCommand(LoadSeriesAsync);
-            DeleteCommand = new Command<TVSeries>(DeleteSeries);
-            AddSeriesCommand = new AsyncRelayCommand(AddSeriesAsync);
-            LoadSeriesAsync();
+            LoadTVSeriesCommand = new AsyncRelayCommand(LoadTVSeriesAsync);
+            DeleteTVSeriesCommand = new RelayCommand<TVSeries>(DeleteTVSeriesAsync);
+            EditTVSeriesCommand = new RelayCommand<TVSeries>(EditTVSeries);
+            SaveTVSeriesCommand = new RelayCommand(SaveTVSeries);
+            LoadTVSeriesAsync();
+            IsEditing = false;
+            selectedTVSeries = new TVSeries();
+            saveButtonText = "Add TV Series";
         }
 
-        private async Task LoadSeriesAsync()
+        private async Task LoadTVSeriesAsync()
         {
             try
             {
+                Debug.WriteLine("Rozpoczynam pobieranie seriali...");
                 var response = await _httpClient.GetAsync(ApiBaseUrl);
                 if (response.IsSuccessStatusCode)
                 {
                     var seriesList = await response.Content.ReadFromJsonAsync<List<TVSeries>>();
-                    if (seriesList != null)
+                    if (seriesList != null && seriesList.Any())
                     {
-                        Series.Clear();
+                        Debug.WriteLine($"Pobrano {seriesList.Count} seriali.");
+                        TVSeries.Clear();
                         foreach (var series in seriesList)
                         {
-                            Series.Add(series);
+                            TVSeries.Add(series);
                         }
                     }
+                    else
+                    {
+                        Debug.WriteLine("Brak seriali do wyświetlenia.");
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine($"Błąd połączenia z API: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading TV series: {ex.Message}");
+                Debug.WriteLine($"Błąd podczas pobierania seriali: {ex.Message}");
             }
         }
 
-        private void DeleteSeries(TVSeries series)
+        private async void DeleteTVSeriesAsync(TVSeries series)
         {
-            if (Series.Contains(series))
-            {
-                Series.Remove(series);
-                _httpClient.DeleteAsync($"{ApiBaseUrl}/{series.Id}");
-            }
-        }
+            if (series == null) return;
 
-        private async Task AddSeriesAsync()
-        {
             try
             {
-                var newSeries = new TVSeries
-                {
-                    Title = NewSeriesTitle,
-                    Category = NewSeriesCategory,
-                    Rating = ParsedRating,
-                    Date = NewSeriesDate,
-                };
-
-                var json = JsonContent.Create(newSeries);
-                var response = await _httpClient.PostAsync(ApiBaseUrl, json);
-
+                var response = await _httpClient.DeleteAsync($"{ApiBaseUrl}/{series.Id}");
                 if (response.IsSuccessStatusCode)
                 {
-                    NewSeriesTitle = string.Empty;
-                    NewSeriesCategory = string.Empty;
-                    NewSeriesRating = string.Empty;
-                    NewSeriesDate = DateTime.Now;
-
-                    await LoadSeriesAsync();
+                    Debug.WriteLine($"Usunięto serial: {series.Title}");
+                    TVSeries.Remove(series);
+                }
+                else
+                {
+                    Debug.WriteLine($"Błąd podczas usuwania serialu: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error adding TV series: {ex.Message}");
+                Debug.WriteLine($"Błąd podczas usuwania serialu: {ex.Message}");
+            }
+        }
+
+        private void EditTVSeries(TVSeries series)
+        {
+            if (series == null) return;
+
+            SelectedTVSeries = series;
+            IsEditing = true;
+            SaveButtonText = "Save Changes";
+        }
+
+        private async void SaveTVSeries()
+        {
+            if (SelectedTVSeries == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(SelectedTVSeries.Title) || string.IsNullOrEmpty(SelectedTVSeries.Category) || SelectedTVSeries.Rating < 1 || SelectedTVSeries.Rating > 10)
+            {
+                Debug.WriteLine("Niepoprawne dane serialu.");
+                return;
+            }
+
+            try
+            {
+                if (IsEditing)
+                {
+                    SaveEdit();
+                }
+                else
+                {
+                    AddTVSeries();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Błąd podczas zapisywania serialu: {ex.Message}");
+            }
+        }
+
+        private async void AddTVSeries()
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"{ApiBaseUrl}", SelectedTVSeries);
+            if (response.IsSuccessStatusCode)
+            {
+                var series = await response.Content.ReadFromJsonAsync<TVSeries>();
+                TVSeries.Add(series);
+                SelectedTVSeries = new TVSeries();
+                IsEditing = false;
+                SaveButtonText = "Add TV Series";
+                Debug.WriteLine($"Dodano serial: {series.Title}");
+            }
+        }
+
+        private async void SaveEdit()
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"{ApiBaseUrl}/{SelectedTVSeries.Id}", SelectedTVSeries);
+            if (response.IsSuccessStatusCode)
+            {
+                var index = TVSeries.IndexOf(TVSeries.First(m => m.Id == SelectedTVSeries.Id));
+                TVSeries[index] = SelectedTVSeries;
+                SelectedTVSeries = new TVSeries();
+                IsEditing = false;
+                SaveButtonText = "Add TV Series";
+                Debug.WriteLine($"Zapisano serial: {SelectedTVSeries.Title}");
+            }
+            else
+            {
+                Debug.WriteLine($"Błąd podczas zapisywania serialu: {response.StatusCode}");
             }
         }
     }

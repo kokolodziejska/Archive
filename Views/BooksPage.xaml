@@ -1,64 +1,62 @@
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"  
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Archive.Views.BooksPage"
-             NavigationPage.HasNavigationBar="False">
-    
-    <ContentPage.Background>
-        <LinearGradientBrush>
-            <GradientStop Color="Black" Offset="0.0" />
-            <GradientStop Color="#494949" Offset="1.0" />
-        </LinearGradientBrush>
-    </ContentPage.Background>
-
+             BackgroundColor="#000000">
 
     <ScrollView>
         <StackLayout Padding="20" Spacing="10">
             <!-- Tytuł aplikacji -->
-            <Label Text="The Verdant Archive"
-                   FontFamily="DeliusSwashCaps"
+            <Label Text="Books Archive"
                    FontSize="26"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
-                   TextColor="#67f5f3" />
+                   TextColor="White" />
 
-            <!-- Sekcja "Add New Book" z przyciskiem strzałki -->
+            <!-- Sekcja "Add New Books" z przyciskiem strzałki -->
             <Grid>
+                <!-- Przycisk strzałki -->
+                <Button Text="🡰"
+                    FontSize="20"
+                    BackgroundColor="Transparent"
+                    TextColor="#67f5f3"
+                    HorizontalOptions="Start"
+                    VerticalOptions="Center"
+                    Grid.Column="0"
+                    Clicked="GoToTVSeriesButton_Clicked" />
+
                 <!-- Wyśrodkowany napis -->
-                <Button Text="➔"
-                        RotationY="180"
-                        FontSize="20"
-                        BackgroundColor="Transparent"
-                        TextColor="#67f5f3"
-                        HorizontalOptions="Start"
-                        VerticalOptions="Center"
-                        Grid.Column="0"
-                        Clicked="GoToTVSeriesButton_Clicked" />
-                
-                <Label Text="Add New Book"
+                <Label Text="Add New Books"
                        FontSize="20"
                        FontAttributes="Bold"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
-                       TextColor="white"
-                       Grid.Column="0"
+                       TextColor="#67f5f3"
+                       Grid.Column="1"
                        Grid.ColumnSpan="2" />
 
                 <!-- Przycisk strzałki -->
-             
+                <Button Text="🡲"
+                        FontSize="20"
+                        BackgroundColor="Transparent"
+                        TextColor="#67f5f3"
+                        HorizontalOptions="End"
+                        VerticalOptions="Center"
+                        Grid.Column="2"
+                        Clicked="GoToMoviesButton_Clicked" />
             </Grid>
 
-            <!-- Formularz dodawania książki -->
-            <StackLayout Spacing="5">
-                <Entry Placeholder="Book Title"
-                       Text="{Binding NewBookTitle, Mode=TwoWay}" 
+            <!-- Formularz dodawania/edycji serialu -->
+            <StackLayout x:Name="BookForm" Spacing="5" IsVisible="{Binding IsAdding}">
+                <Entry Placeholder="Books Title"
+                       Text="{Binding SelectedBook.Title}"
                        TextColor="White"
                        BackgroundColor="#333333"
                        Margin="5"
                        HeightRequest="35"
                        FontSize="12" />
 
-                <Entry Placeholder="Book Category"
-                       Text="{Binding NewBookCategory, Mode=TwoWay}"
+                <Entry Placeholder="Books Category"
+                       Text="{Binding SelectedBook.Category}"
                        TextColor="White"
                        BackgroundColor="#333333"
                        Margin="5"
@@ -66,7 +64,7 @@
                        FontSize="12" />
 
                 <Entry Placeholder="Rating (1-10)"
-                       Text="{Binding NewBookRating, Mode=TwoWay}"
+                       Text="{Binding SelectedBook.Rating}"
                        Keyboard="Numeric"
                        TextColor="White"
                        BackgroundColor="#333333"
@@ -74,24 +72,24 @@
                        HeightRequest="35"
                        FontSize="12" />
 
-                <DatePicker TextColor="White"
-                            Date="{Binding NewBookDate, Mode=TwoWay}"
+                <DatePicker Date="{Binding SelectedBook.Date}"
+                            TextColor="White"
                             BackgroundColor="#333333"
                             Margin="5"
                             HeightRequest="35"
                             FontSize="12" />
 
-                <Button Text="Add Book"
-                        Command="{Binding AddBookCommand}"
+                <Button Text="{Binding SaveButtonText}"
                         BackgroundColor="#408584"
                         TextColor="White"
                         HeightRequest="35"
                         FontSize="12"
                         CornerRadius="5"
-                        Margin="5" />
+                        Margin="5"
+                        Command="{Binding SaveBookCommand}" />
             </StackLayout>
 
-            <!-- Nagłówek sekcji książek -->
+            <!-- Nagłówek sekcji seriali -->
             <Label Text="Books"
                    FontSize="20"
                    FontAttributes="Bold"
@@ -99,7 +97,7 @@
                    TextColor="White"
                    Margin="10,20,10,10" />
 
-            <!-- Lista książek -->
+            <!-- Lista seriali -->
             <CollectionView ItemsSource="{Binding Books}" HeightRequest="400">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
@@ -110,9 +108,9 @@
                                HasShadow="True"
                                CornerRadius="10">
                             <StackLayout>
-                                <!-- Informacje o książce -->
+                                <!-- Informacje o serialu -->
                                 <Label Text="{Binding Title}"
-                                       FontSize="18"
+                                       FontSize="16"
                                        TextColor="White" />
 
                                 <HorizontalStackLayout Spacing="10">
@@ -138,17 +136,19 @@
                                             HeightRequest="30"
                                             WidthRequest="60"
                                             CornerRadius="5"
-                                            Padding="2"/>
+                                            Padding="2"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditBookCommand}"
+                                            CommandParameter="{Binding}" />
 
                                     <Button Text="Delete"
-                                            BackgroundColor="#a6402e"
+                                            BackgroundColor="#FF6347"
                                             TextColor="White"
                                             FontSize="9"
                                             HeightRequest="30"
                                             WidthRequest="60"
                                             CornerRadius="5"
                                             Padding="2"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCommand}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteBookCommand}"
                                             CommandParameter="{Binding}" />
                                 </HorizontalStackLayout>
                             </StackLayout>
@@ -159,3 +159,4 @@
         </StackLayout>
     </ScrollView>
 </ContentPage>
+

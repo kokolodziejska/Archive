@@ -5,15 +5,6 @@
              x:Class="Archive.App">
     <Application.Resources>
         <ResourceDictionary>
-            <!-- Global styles -->
-            <Style TargetType="Label">
-                <Setter Property="FontFamily" Value="Lato" />
-            </Style>
-            <Style TargetType="Button">
-                <Setter Property="FontFamily" Value="Lato" />
-            </Style>
-
-            <!-- Merged dictionaries -->
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />

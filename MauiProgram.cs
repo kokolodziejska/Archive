@@ -1,5 +1,6 @@
 ﻿using Archive.ViewModels;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Archive
 {
@@ -12,14 +13,16 @@ namespace Archive
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
                 {
-                    fonts.AddFont("Lato-Regular.ttf", "Lato");
-                    fonts.AddFont("DeliusSwashCaps-Regular.ttf", "DeliusSwashCaps");
+                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-            // Rejestracja ViewModel
             builder.Services.AddSingleton<Views.MoviesPage>();
             builder.Services.AddSingleton<ViewModels.MoviesViewModel>();
-
+            builder.Services.AddSingleton<Views.TVSeriesPage>();
+            builder.Services.AddSingleton<ViewModels.TVSeriesViewModel>();
+            builder.Services.AddSingleton<Views.BooksPage>();
+            builder.Services.AddSingleton<ViewModels.BooksViewModel>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

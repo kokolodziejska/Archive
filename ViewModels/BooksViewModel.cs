@@ -1,40 +1,37 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Net.Http;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.Http.Json;
+using System.Text;
 using System.Threading.Tasks;
 using Archive.Models;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 
 namespace Archive.ViewModels
 {
     public partial class BooksViewModel : ObservableObject
     {
-        private const string ApiBaseUrl = "https://10.0.2.2:7219/api/books";
-        public ObservableCollection<Book> Books { get; set; } = new();
+        private const string ApiBaseUrl = "http://localhost:5109/api/books";
+        public ObservableCollection<Book> Books { get; set; } = [];
 
         private readonly HttpClient _httpClient;
 
-        [ObservableProperty]
-        private string newBookTitle;
-
-        [ObservableProperty]
-        private string newBookCategory;
-
-        [ObservableProperty]
-        private string newBookRating;
-
-        public int ParsedRating => int.TryParse(NewBookRating, out var rating) ? rating : 0;
-
-        [ObservableProperty]
-        private DateTime newBookDate = DateTime.Now;
-
         public IAsyncRelayCommand LoadBooksCommand { get; }
-        public ICommand DeleteCommand { get; }
-        public IAsyncRelayCommand AddBookCommand { get; }
+        public IRelayCommand<Book> DeleteBookCommand { get; }
+        public IRelayCommand<Book> EditBookCommand { get; }
+        public IRelayCommand SaveBookCommand { get; }
+
+        [ObservableProperty]
+        private Book selectedBook;
+
+        [ObservableProperty]
+        private bool isEditing;
+
+        [ObservableProperty]
+        private string saveButtonText;
 
         public BooksViewModel()
         {
@@ -45,72 +42,140 @@ namespace Archive.ViewModels
 
             _httpClient = new HttpClient(handler);
             LoadBooksCommand = new AsyncRelayCommand(LoadBooksAsync);
-            DeleteCommand = new Command<Book>(DeleteBook);
-            AddBookCommand = new AsyncRelayCommand(AddBookAsync);
+            DeleteBookCommand = new RelayCommand<Book>(DeleteBookAsync);
+            EditBookCommand = new RelayCommand<Book>(EditBook);
+            SaveBookCommand = new RelayCommand(SaveBook);
             LoadBooksAsync();
+            IsEditing = false;
+            selectedBook = new Book();
+            saveButtonText = "Add Book";
         }
 
         private async Task LoadBooksAsync()
         {
             try
             {
+                Debug.WriteLine("Rozpoczynam pobieranie książek...");
                 var response = await _httpClient.GetAsync(ApiBaseUrl);
                 if (response.IsSuccessStatusCode)
                 {
-                    var bookList = await response.Content.ReadFromJsonAsync<List<Book>>();
-                    if (bookList != null)
+                    var booksList = await response.Content.ReadFromJsonAsync<List<Book>>();
+                    if (booksList != null && booksList.Any())
                     {
+                        Debug.WriteLine($"Pobrano {booksList.Count} książek.");
                         Books.Clear();
-                        foreach (var book in bookList)
+                        foreach (var book in booksList)
                         {
                             Books.Add(book);
                         }
                     }
+                    else
+                    {
+                        Debug.WriteLine("Brak książek do wyświetlenia.");
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine($"Błąd połączenia z API: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading books: {ex.Message}");
+                Debug.WriteLine($"Błąd podczas pobierania książek: {ex.Message}");
             }
         }
 
-        private void DeleteBook(Book book)
+        private async void DeleteBookAsync(Book book)
         {
-            if (Books.Contains(book))
-            {
-                Books.Remove(book);
-                _httpClient.DeleteAsync($"{ApiBaseUrl}/{book.Id}");
-            }
-        }
+            if (book == null) return;
 
-        private async Task AddBookAsync()
-        {
             try
             {
-                var newBook = new Book
-                {
-                    Title = NewBookTitle,
-                    Category = NewBookCategory,
-                    Rating = ParsedRating,
-                    Date = NewBookDate,
-                };
-
-                var json = JsonContent.Create(newBook);
-                var response = await _httpClient.PostAsync(ApiBaseUrl, json);
-
+                var response = await _httpClient.DeleteAsync($"{ApiBaseUrl}/{book.Id}");
                 if (response.IsSuccessStatusCode)
                 {
-                    NewBookTitle = string.Empty;
-                    NewBookCategory = string.Empty;
-                    NewBookRating = string.Empty;
-                    NewBookDate = DateTime.Now;
-
-                    await LoadBooksAsync();
+                    Debug.WriteLine($"Usunięto książkę: {book.Title}");
+                    Books.Remove(book);
+                }
+                else
+                {
+                    Debug.WriteLine($"Błąd podczas usuwania książki: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error adding book: {ex.Message}");
+                Debug.WriteLine($"Błąd podczas usuwania książki: {ex.Message}");
+            }
+        }
+
+        private void EditBook(Book book)
+        {
+            if (book == null) return;
+
+            SelectedBook = book;
+            IsEditing = true;
+            SaveButtonText = "Save Changes";
+        }
+
+        private async void SaveBook()
+        {
+            if (SelectedBook == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(SelectedBook.Title) || string.IsNullOrEmpty(SelectedBook.Category) || SelectedBook.Rating < 1 || SelectedBook.Rating > 10)
+            {
+                Debug.WriteLine("Niepoprawne dane książki.");
+                return;
+            }
+
+            try
+            {
+                if (IsEditing)
+                {
+                    SaveEdit();
+                }
+                else
+                {
+                    AddBook();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Błąd podczas zapisywania książki: {ex.Message}");
+            }
+        }
+
+        private async void AddBook()
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"{ApiBaseUrl}", SelectedBook);
+            if (response.IsSuccessStatusCode)
+            {
+                var book = await response.Content.ReadFromJsonAsync<Book>();
+                Books.Add(book);
+                SelectedBook = new Book();
+                IsEditing = false;
+                SaveButtonText = "Add Book";
+                Debug.WriteLine($"Dodano książkę: {book.Title}");
+            }
+        }
+
+        private async void SaveEdit()
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"{ApiBaseUrl}/{SelectedBook.Id}", SelectedBook);
+            if (response.IsSuccessStatusCode)
+            {
+                var index = Books.IndexOf(Books.First(m => m.Id == SelectedBook.Id));
+                Books[index] = SelectedBook;
+                SelectedBook = new Book();
+                IsEditing = false;
+                SaveButtonText = "Add Book";
+                Debug.WriteLine($"Zapisano książkę: {SelectedBook.Title}");
+            }
+            else
+            {
+                Debug.WriteLine($"Błąd podczas zapisywania książki: {response.StatusCode}");
             }
         }
     }

@@ -2,12 +2,13 @@
 {
     public partial class App : Application
     {
-        public App()
+        public static IServiceProvider serviceProvider;
+
+        public App(IServiceProvider serviceProvider)
         {
             InitializeComponent();
-
-            MainPage = new NavigationPage(new Archive.Views.MoviesPage());
-
+            App.serviceProvider = serviceProvider;
+            MainPage = new NavigationPage(serviceProvider.GetService<Views.MoviesPage>());
         }
     }
 }
