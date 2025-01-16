@@ -33,6 +33,12 @@ namespace Archive.ViewModels
         [ObservableProperty]
         private string saveButtonText;
 
+        [ObservableProperty]
+        private string centerText;
+
+        [ObservableProperty]
+        private string color;
+
         public BooksViewModel()
         {
             var handler = new HttpClientHandler
@@ -47,8 +53,10 @@ namespace Archive.ViewModels
             SaveBookCommand = new RelayCommand(SaveBook);
             LoadBooksAsync();
             IsEditing = false;
-            selectedBook = new Book();
-            saveButtonText = "Add Book";
+            SelectedBook = new Book();
+            SaveButtonText = "Add Book";
+            CenterText = "Add New Book";
+            Color = "#67f5f3";
         }
 
         private async Task LoadBooksAsync()
@@ -115,6 +123,8 @@ namespace Archive.ViewModels
             SelectedBook = book;
             IsEditing = true;
             SaveButtonText = "Save Changes";
+            CenterText = "Edit Book";
+            Color = "#ffae36";
         }
 
         private async void SaveBook()
@@ -157,6 +167,8 @@ namespace Archive.ViewModels
                 SelectedBook = new Book();
                 IsEditing = false;
                 SaveButtonText = "Add Book";
+                CenterText = "Add New Book";
+                Color = "#67f5f3";
                 Debug.WriteLine($"Dodano książkę: {book.Title}");
             }
         }
@@ -171,6 +183,8 @@ namespace Archive.ViewModels
                 SelectedBook = new Book();
                 IsEditing = false;
                 SaveButtonText = "Add Book";
+                CenterText = "Add New Book";
+                Color = "#67f5f3";
                 Debug.WriteLine($"Zapisano książkę: {SelectedBook.Title}");
             }
             else

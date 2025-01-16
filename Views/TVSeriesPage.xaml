@@ -18,19 +18,19 @@
                 <Button Text="🡰"
                     FontSize="20"
                     BackgroundColor="Transparent"
-                    TextColor="#67f5f3"
+                    TextColor="{Binding Color}"
                     HorizontalOptions="Start"
                     VerticalOptions="Center"
                     Grid.Column="0"
                     Clicked="GoToMoviesButton_Clicked" />
                 
                 <!-- Wyśrodkowany napis -->
-                <Label Text="Add New TV Series"
+                <Label Text="{Binding CenterText}"
                        FontSize="20"
                        FontAttributes="Bold"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
-                       TextColor="#67f5f3"
+                       TextColor="{Binding Color}"
                        Grid.Column="1"
                        Grid.ColumnSpan="2" />
 
@@ -38,7 +38,7 @@
                 <Button Text="🡲"
                         FontSize="20"
                         BackgroundColor="Transparent"
-                        TextColor="#67f5f3"
+                        TextColor="{Binding Color}"
                         HorizontalOptions="End"
                         VerticalOptions="Center"
                         Grid.Column="2"
@@ -80,7 +80,7 @@
                             FontSize="12" />
 
                 <Button Text="{Binding SaveButtonText}"
-                        BackgroundColor="#408584"
+                        BackgroundColor="{Binding Color}"
                         TextColor="White"
                         HeightRequest="35"
                         FontSize="12"

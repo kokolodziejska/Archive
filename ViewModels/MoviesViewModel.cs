@@ -33,6 +33,12 @@ namespace Archive.ViewModels
         [ObservableProperty]
         private string saveButtonText;
 
+        [ObservableProperty]
+        private string centerText;
+
+        [ObservableProperty]
+        private string color;
+
         public MoviesViewModel()
         {
             var handler = new HttpClientHandler
@@ -47,8 +53,10 @@ namespace Archive.ViewModels
             SaveMovieCommand = new RelayCommand(SaveMovie);
             LoadMoviesAsync();
             IsEditing = false;
-            selectedMovie = new Movie();
-            saveButtonText = "Add Movie";
+            SelectedMovie = new Movie();
+            SaveButtonText = "Add Movie";
+            CenterText = "Add New Movie";
+            Color = "#67f5f3";
         }
 
         private async Task LoadMoviesAsync()
@@ -115,6 +123,8 @@ namespace Archive.ViewModels
             SelectedMovie = movie;
             IsEditing = true;
             SaveButtonText = "Save Changes";
+            CenterText = "Edit Movie";
+            Color = "#ffae36";
         }
 
         private async void SaveMovie()
@@ -157,6 +167,8 @@ namespace Archive.ViewModels
                 SelectedMovie = new Movie();
                 IsEditing = false;
                 SaveButtonText = "Add Movie";
+                CenterText = "Add New Movie";
+                Color = "#67f5f3";
                 Debug.WriteLine($"Dodano film: {movie.Title}");
             }
         }
@@ -171,6 +183,8 @@ namespace Archive.ViewModels
                 SelectedMovie = new Movie();
                 IsEditing = false;
                 SaveButtonText = "Add Movie";
+                CenterText = "Add New Movie";
+                Color = "#67f5f3";
                 Debug.WriteLine($"Zapisano film: {SelectedMovie.Title}");
             }
             else

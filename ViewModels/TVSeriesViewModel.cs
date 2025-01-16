@@ -33,6 +33,12 @@ namespace Archive.ViewModels
         [ObservableProperty]
         private string saveButtonText;
 
+        [ObservableProperty]
+        private string centerText;
+
+        [ObservableProperty]
+        private string color;
+
         public TVSeriesViewModel()
         {
             var handler = new HttpClientHandler
@@ -49,6 +55,8 @@ namespace Archive.ViewModels
             IsEditing = false;
             selectedTVSeries = new TVSeries();
             saveButtonText = "Add TV Series";
+            CenterText = "Add New TV Series";
+            Color = "#67f5f3";
         }
 
         private async Task LoadTVSeriesAsync()
@@ -115,6 +123,8 @@ namespace Archive.ViewModels
             SelectedTVSeries = series;
             IsEditing = true;
             SaveButtonText = "Save Changes";
+            CenterText = "Edit TV Series";
+            Color = "#ffae36";
         }
 
         private async void SaveTVSeries()
@@ -157,6 +167,8 @@ namespace Archive.ViewModels
                 SelectedTVSeries = new TVSeries();
                 IsEditing = false;
                 SaveButtonText = "Add TV Series";
+                CenterText = "Add New TV Series";
+                Color = "#67f5f3";
                 Debug.WriteLine($"Dodano serial: {series.Title}");
             }
         }
@@ -171,6 +183,8 @@ namespace Archive.ViewModels
                 SelectedTVSeries = new TVSeries();
                 IsEditing = false;
                 SaveButtonText = "Add TV Series";
+                CenterText = "Add New TV Series";
+                Color = "#67f5f3";
                 Debug.WriteLine($"Zapisano serial: {SelectedTVSeries.Title}");
             }
             else
